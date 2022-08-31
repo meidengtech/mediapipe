@@ -154,3 +154,10 @@ We welcome contributions. Please follow these
 
 We use GitHub issues for tracking requests and bugs. Please post questions to
 the MediaPipe Stack Overflow with a `mediapipe` tag.
+
+## Debug Firefly 
+
+```sh
+bazel build --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link
+bazel-bin/mediapipe/examples/desktop/firefly_link/firefly_link.exe
+```

@@ -93,7 +93,7 @@ input_side_packet: "USE_PREV_LANDMARKS:use_prev_landmarks"
 # NOTE: if a pose is not present within the given ROI, for this particular
 # timestamp there will not be an output packet in the LANDMARKS stream. However,
 # the MediaPipe framework will internally inform the downstream calculators of
-# the absence of this packet so that they don't wait for it unnecessarily.
+# the absence of this packet so that they don't wait forit unnecessarily.
 output_stream: "LANDMARKS:pose_landmarks"
 
 # Pose world landmarks. (LandmarkList)
