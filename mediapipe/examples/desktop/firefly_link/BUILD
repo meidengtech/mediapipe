@@ -22,7 +22,9 @@ cc_binary(
         "firefly_link.cc",
         "mat2euler.cc",
         "face_euler_calculator.cc",
-        "face_landmark_to_multi_calculator.cc"
+        "face_landmark_to_multi_calculator.cc",
+        "arkit_blendshape_calculator.cc",
+        "geometry2blendshape.cc",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -36,11 +38,11 @@ cc_binary(
         "//mediapipe/framework/port:parse_text_proto",
         "//mediapipe/framework/port:status",
         "//mediapipe/modules/face_geometry/protos:geometry_pipeline_metadata_cc_proto",
+        "//mediapipe/modules/face_geometry/protos:mesh_3d_cc_proto",
         "//mediapipe/modules/face_geometry:env_generator_calculator",
         "//mediapipe/modules/face_geometry:geometry_pipeline_calculator",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
-
         "//mediapipe/graphs/holistic_tracking:holistic_tracking_cpu_graph_deps",
     ],
 )

@@ -30,57 +30,6 @@
 
 #include "firefly_link.h"
 
-class Vertex {
-public:
-  Vertex(float x_=0, float y_=0, float z_ = 0): x(x_), y(y_), z(z_) {
-  }
-  Vertex(const Vertex& v): x(v.x), y(v.y), z(v.z){
-  }
-  Vertex(const mediapipe::NormalizedLandmark& mark): x(mark.x()), y(mark.y()), z(mark.z()) {
-  }
-
-  Vertex& operator /=(float v) {
-    x /= v;
-    y /= v;
-    z /= v;
-  }
-  Vertex operator / (float v) {
-    Vertex ret(*this);
-    ret /= v;
-    return ret;
-  }
-
-  Vertex& operator -=(const Vertex& other) {
-    x -= other.x;
-    y -= other.y;
-    z -= other.z;
-    return *this;
-  }
-  Vertex operator -(const Vertex& other) {
-    Vertex ret(*this);
-    ret -= other;
-    return ret;
-  }
-
-  float length() {
-    return sqrtf(x*x+y*y+z*z);
-  }
-
-  float distance(const Vertex& other) {
-    return ((*this) - other).length();
-  }
-
-  float x, y, z;
-};
-
-inline float clamp(float val, float min, float max) {
-  return std::max(std::min(val, max), min);
-}
-
-inline float remap(float val, float l, float r) {
-  return (clamp(val, l, r)- l) / (r - l);
-}
-
 std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> output_video_poller;
 
@@ -211,11 +160,10 @@ node {
 }
 
 node {
-  calculator: "FaceEulerCalculator"
+  calculator: "ArkitBlendshapesCalculator"
   input_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
-  output_stream: "FACE_EULER:face_euler"
+  output_stream: "FACE_BLEND_SHAPES:face_blendshapes"
 }
-
 
       )pb");
 
