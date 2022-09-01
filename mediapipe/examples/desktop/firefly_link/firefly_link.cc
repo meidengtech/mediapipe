@@ -28,6 +28,8 @@
 #include "mediapipe/framework/port/opencv_highgui_inc.h"
 #include "mediapipe/framework/port/parse_text_proto.h"
 
+#include "firefly_link.h"
+
 class Vertex {
 public:
   Vertex(float x_=0, float y_=0, float z_ = 0): x(x_), y(y_), z(z_) {
@@ -81,8 +83,6 @@ inline float remap(float val, float l, float r) {
 
 std::unique_ptr<mediapipe::CalculatorGraph> graph;
 std::unique_ptr<mediapipe::OutputStreamPoller> output_video_poller;
-std::unique_ptr<mediapipe::OutputStreamPoller> pose_world_landmarks_poller;
-std::unique_ptr<mediapipe::OutputStreamPoller> face_landmarks_poller;
 
 bool getPooler(const char* name, std::unique_ptr<mediapipe::OutputStreamPoller>& ptr) {
   auto statusor =  std::move(graph->AddOutputStreamPoller(name));
@@ -112,12 +112,6 @@ input_side_packet: "use_prev_landmarks"
 
 # CPU image with rendered results. (ImageFrame)
 output_stream: "output_video"
-
-# Pose world landmarks.(LandmarkList)
-output_stream: "pose_world_landmarks"
-
-# Face landmarks (NormalizedLandmarkList)
-output_stream: "face_landmarks"
 
 node {
   calculator: "FlowLimiterCalculator"
@@ -180,11 +174,49 @@ node {
   output_stream: "IMAGE:output_video"
 }
 
+node {
+  calculator: "FaceGeometryEnvGeneratorCalculator"
+  output_side_packet: "ENVIRONMENT:environment"
+  node_options: {
+    [type.googleapis.com/mediapipe.FaceGeometryEnvGeneratorCalculatorOptions] {
+      environment: {
+        origin_point_location: TOP_LEFT_CORNER
+        perspective_camera: {
+          vertical_fov_degrees: 63.0  # 63 degrees
+          near: 1.0  # 1cm
+          far: 10000.0  # 100m
+        }
+      }
+    }
+  }
+}
+
+node {
+  calculator: "FaceLandmarkToMultiCalculator"
+  input_stream: "FACE_LANDMARKS:face_landmarks"
+  output_stream: "MULTI_FACE_LANDMARKS:multi_face_landmarks"
+}
+
+node {
+  calculator: "FaceGeometryPipelineCalculator"
+  input_side_packet: "ENVIRONMENT:environment"
+  input_stream: "IMAGE_SIZE:image_size"
+  input_stream: "MULTI_FACE_LANDMARKS:multi_face_landmarks"
+  output_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
+  options: {
+    [mediapipe.FaceGeometryPipelineCalculatorOptions.ext] {
+      metadata_path: "mediapipe/modules/face_geometry/data/geometry_pipeline_metadata_landmarks.binarypb"
+    }
+  }
+}
+
+
       )pb");
 
   graph.reset(new mediapipe::CalculatorGraph());
-  if (!graph->Initialize(config).ok()) {
-    LOG(ERROR) << "Graph init failed.";
+  auto status = graph->Initialize(config);
+  if (!status.ok()) {
+    LOG(ERROR) << "Graph init failed." << status;
     graph.reset();
     return false;
   }
@@ -194,15 +226,7 @@ node {
   if (!getPooler("output_video", output_video_poller)) {
     return false;
   }
-
-  if (!getPooler("pose_world_landmarks", pose_world_landmarks_poller)) {
-    return false;
-  }
-
-  if (!getPooler("face_landmarks", face_landmarks_poller)) {
-    return false;
-  }
-
+  
   std::map<std::string, mediapipe::Packet> extra_side_packets;
   extra_side_packets["refine_face_landmarks"] = mediapipe::MakePacket<bool>(true);
   extra_side_packets["use_prev_landmarks"] = mediapipe::MakePacket<bool>(true);
@@ -217,47 +241,6 @@ node {
   return true;
 }
 
-
-void calcMouth(const mediapipe::NormalizedLandmarkList& list) {
-  Vertex eyeInnerCornerL(list.landmark(133));
-  Vertex eyeInnerCornerR(list.landmark(362));
-  Vertex eyeOuterCornerL(list.landmark(130));
-  Vertex eyeOuterCornerR(list.landmark(263));
-  float eyeInnerDistance = eyeInnerCornerL.distance(eyeInnerCornerR);
-  float eyeOuterDistance = eyeOuterCornerL.distance(eyeOuterCornerR);
-
-  Vertex upperInnerLip(list.landmark(13));
-  Vertex lowerInnerLip(list.landmark(14));
-  Vertex mouthCornerLeft(list.landmark(61));
-  Vertex mouthCornerRight(list.landmark(291));
-
-  float mouthOpen = upperInnerLip.distance(lowerInnerLip);
-  float mouthWidth = mouthCornerLeft.distance(mouthCornerRight);
-
-  // mouth open and mouth shape ratios
-  // let ratioXY = mouthWidth / mouthOpen;
-  float ratioY = mouthOpen / eyeInnerDistance;
-  float ratioX = mouthWidth / eyeOuterDistance;
-
-  // normalize and scale mouth open
-  ratioY = remap(ratioY, 0.15, 0.7);
-
-  // normalize and scale mouth shape
-  ratioX = remap(ratioX, 0.30, 0.9);
-  ratioX = (ratioX - 0.3) * 2;
-
-  float mouthX = ratioX;
-  float mouthY = remap(mouthOpen / eyeInnerDistance, 0.17, 0.5);
-
-  float ratioI = clamp(remap(mouthX, 0, 1) * 2 * remap(mouthY, 0.2, 0.7), 0, 1);
-  float ratioA = mouthY * 0.4 + mouthY * (1 - ratioI) * 0.6;
-  float ratioU = mouthY * remap(1 - ratioI, 0, 0.3) * 0.1;
-  float ratioE = remap(ratioU, 0.2, 1) * (1 - ratioI) * 0.3;
-  float ratioO = (1 - ratioI) * remap(mouthY, 0.3, 1) * 0.4;
-
-  printf("X: %f, Y:%f, A:%f, E:%f, I:%f, O:%f, U:%f\n", mouthX, mouthY, ratioA, ratioE, ratioI, ratioO, ratioU);
-
-}
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -304,36 +287,12 @@ int main(int argc, char** argv) {
       return -1;
     }
 
-    if (pose_world_landmarks_poller->QueueSize() > 0) {
-      mediapipe::Packet packet;
-      if (!pose_world_landmarks_poller->Next(&packet)) {
-        LOG(ERROR) << "Failed to poll packet.";
-        break;
-      }
-      auto& output_frame = packet.Get<mediapipe::LandmarkList>();
-      // for (int i = 11; i <= 11; i++) {
-      //   const auto& landmark = output_frame.landmark(i);
-      //   printf("%d: %f %f %f\n", i, landmark.x(), landmark.y(), landmark.z());
-      // }
-    }
-
-    if (face_landmarks_poller->QueueSize() > 0) {
-      mediapipe::Packet packet;
-      if (!face_landmarks_poller->Next(&packet)) {
-        LOG(ERROR) << "Failed to poll packet.";
-        break;
-      }
-      auto& output_frame = packet.Get<mediapipe::NormalizedLandmarkList>();
-      
-      calcMouth(output_frame);
-    }
-
     // Get the graph result packet, or stop if that fails.
     {
       mediapipe::Packet packet;
       if (!output_video_poller->Next(&packet)) {
         LOG(ERROR) << "Failed to poll packet.";
-        break;
+        continue;
       }
       auto& output_frame = packet.Get<mediapipe::ImageFrame>();
 

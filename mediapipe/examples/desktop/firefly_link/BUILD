@@ -18,7 +18,10 @@ package(default_visibility = ["//mediapipe/examples:__subpackages__"])
 
 cc_binary(
     name = "firefly_link",
-    srcs = ["firefly_link.cc"],
+    srcs = [
+        "firefly_link.cc",
+        "calc_face.cc"
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//mediapipe/framework:calculator_graph",
@@ -29,6 +32,9 @@ cc_binary(
         "//mediapipe/framework/port:opencv_highgui",
         "//mediapipe/framework/port:parse_text_proto",
         "//mediapipe/framework/port:status",
+        "//mediapipe/modules/face_geometry/protos:geometry_pipeline_metadata_cc_proto",
+        "//mediapipe/modules/face_geometry:env_generator_calculator",
+        "//mediapipe/modules/face_geometry:geometry_pipeline_calculator",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
 

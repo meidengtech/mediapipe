@@ -158,6 +158,19 @@ the MediaPipe Stack Overflow with a `mediapipe` tag.
 ## Debug Firefly 
 
 ```sh
+# 编译项目
 bazel build --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link
+
+# 运行项目
 bazel-bin/mediapipe/examples/desktop/firefly_link/firefly_link.exe
 ```
+
+曾经做过的事情：
+* geometry_pipeline_metadata_landmarks.binarypb找不到：
+
+```sh 
+# 编译依赖模型（不明白为啥要手动编译）
+bazel build --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" -c opt --define MEDIAPIPE_DISABLE_GPU=0 --copt -DMESA_EGL_NO_X11_HEADERS --copt -DEGL_NO_X11 mediapipe/modules/face_geometry/data:geometry_pipeline_metadata
+```
+
+然后手动找出来该文件并复制到目标地点。
