@@ -48,4 +48,6 @@ namespace mediapipe {
     };
 
     REGISTER_CALCULATOR(FaceLandmarkToMultiCalculator);
+
 }
+

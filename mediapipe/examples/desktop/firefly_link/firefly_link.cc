@@ -210,6 +210,12 @@ node {
   }
 }
 
+node {
+  calculator: "FaceEulerCalculator"
+  input_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
+  output_stream: "FACE_EULER:face_euler"
+}
+
 
       )pb");
 

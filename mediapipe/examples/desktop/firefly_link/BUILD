@@ -20,13 +20,16 @@ cc_binary(
     name = "firefly_link",
     srcs = [
         "firefly_link.cc",
-        "calc_face.cc"
+        "mat2euler.cc",
+        "face_euler_calculator.cc",
+        "face_landmark_to_multi_calculator.cc"
     ],
     visibility = ["//visibility:public"],
     deps = [
         "//mediapipe/framework:calculator_graph",
         "//mediapipe/framework/formats:image_frame",
         "//mediapipe/framework/formats:image_frame_opencv",
+        "//mediapipe/framework/formats:matrix_data_cc_proto",
         "//mediapipe/framework/port:opencv_video",
         "//mediapipe/framework/port:opencv_imgproc",
         "//mediapipe/framework/port:opencv_highgui",
