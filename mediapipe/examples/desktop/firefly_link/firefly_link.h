@@ -158,4 +158,8 @@ namespace firefly {
         const mediapipe::face_geometry::FaceGeometry& geometry,
         ARKitFaceBlendShapes& out
     );
+
+    bool init(int cameraId);
+    bool run(ARKitFaceBlendShapes* out);
+    void shutdown();
 }
