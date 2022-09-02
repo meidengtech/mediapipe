@@ -28,11 +28,11 @@ namespace firefly {
             float ax = atan2f(M(k,j), M(k,k));
             float ay = atan2f(-M(k,i), cy);
             float az = atan2f(M(j,i), M(i,i));
-            return Euler(ax, ay, az);
+            return Euler(-ax, az, ay);
         } else {
             float ax = atan2f(-M(j,k), M(j, j));
             float ay = atan2f(-M(k, i), cy);
-            return Euler(ax, ay, 0.0f);
+            return Euler(-ax, 0.0f, ay);
         }
     }
 }

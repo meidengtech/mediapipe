@@ -201,7 +201,7 @@ namespace firefly {
 
         cv::Mat camera_frame;
         cv::cvtColor(camera_frame_raw, camera_frame, cv::COLOR_BGR2RGB);
-        cv::flip(camera_frame, camera_frame, /*flipcode=HORIZONTAL*/ 1);
+        //cv::flip(camera_frame, camera_frame, /*flipcode=HORIZONTAL*/ 1);
 
         // Wrap Mat into an ImageFrame.
         auto input_frame = absl::make_unique<mediapipe::ImageFrame>(
