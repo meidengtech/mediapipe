@@ -174,3 +174,9 @@ bazel build --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" -c o
 ```
 
 然后手动找出来该文件并复制到目标地点。
+
+发布
+
+```sh
+bazel build --compilation_mode=opt --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link:firefly
+```
