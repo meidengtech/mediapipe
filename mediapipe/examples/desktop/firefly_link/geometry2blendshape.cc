@@ -40,10 +40,10 @@ static const int cheek_squint_left[] = {359, 342};
 static const int cheek_squint_right[] = {130, 113};
 
 static std::map<firefly::ARKit::FaceBlendShape, std::pair<float, float> > remap_config= {
-    {firefly::ARKit::EyeBlinkLeft , std::make_pair(0.40, 0.60) },
+    {firefly::ARKit::EyeBlinkLeft , std::make_pair(0.40, 0.70) },
     {firefly::ARKit::EyeSquintLeft , std::make_pair(0.37, 0.44) },
     {firefly::ARKit::EyeWideLeft , std::make_pair(0.9, 1.2) },
-    {firefly::ARKit::EyeBlinkRight , std::make_pair(0.40, 0.60) },
+    {firefly::ARKit::EyeBlinkRight , std::make_pair(0.40, 0.70) },
     {firefly::ARKit::EyeSquintRight , std::make_pair(0.37, 0.44) },
     {firefly::ARKit::EyeWideRight , std::make_pair(0.9, 1.2) },
     {firefly::ARKit::JawLeft , std::make_pair(-0.4, 0.0) },

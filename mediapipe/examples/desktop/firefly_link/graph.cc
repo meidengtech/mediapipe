@@ -179,8 +179,8 @@ namespace firefly {
 
         capture_.reset(new cv::VideoCapture());
         capture_->open(0);
-        capture_->set(cv::CAP_PROP_FRAME_WIDTH, 640);
-        capture_->set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+        capture_->set(cv::CAP_PROP_FRAME_WIDTH, 800);
+        capture_->set(cv::CAP_PROP_FRAME_HEIGHT, 600);
         capture_->set(cv::CAP_PROP_FPS, 30);
 
         graph.reset(graph_.release());

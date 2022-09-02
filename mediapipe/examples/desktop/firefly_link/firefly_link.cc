@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
       if (!firefly::run(&out, true).ok()) {
         break;
       }
-      printf("%f %f\n", out.bs[firefly::ARKit::MouthPucker], out.bs[firefly::ARKit::MouthFunnel]);
+      printf("%f %f\n", out.bs[firefly::ARKit::EyeBlinkLeft], out.bs[firefly::ARKit::EyeBlinkRight]);
       // Press any key to exit.
       const int pressed_key = cv::waitKey(5);
       if (pressed_key >= 0 && pressed_key != 255) running = false;
