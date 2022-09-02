@@ -20,6 +20,7 @@ cc_binary(
     name = "firefly_link",
     srcs = [
         "firefly_link.cc",
+        "firefly_link.h",
         "mat2euler.cc",
         "graph.cc",
         "face_euler_calculator.cc",
@@ -51,7 +52,7 @@ cc_binary(
 
 
 cc_binary(
-    name = "firefly",
+    name = "firefly_link.dll",
     srcs = [
         "firefly_dll_link.cc",
         "mat2euler.cc",
@@ -60,6 +61,7 @@ cc_binary(
         "face_landmark_to_multi_calculator.cc",
         "arkit_blendshape_calculator.cc",
         "geometry2blendshape.cc",
+        "firefly_link.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -67,11 +69,14 @@ cc_binary(
         "//mediapipe/framework/formats:image_frame",
         "//mediapipe/framework/formats:image_frame_opencv",
         "//mediapipe/framework/formats:matrix_data_cc_proto",
+        "//mediapipe/framework/deps:file_path",
         "//mediapipe/framework/port:opencv_video",
         "//mediapipe/framework/port:opencv_imgproc",
         "//mediapipe/framework/port:opencv_highgui",
+        "//mediapipe/framework/port:file_helpers",
         "//mediapipe/framework/port:parse_text_proto",
         "//mediapipe/framework/port:status",
+        "//mediapipe/util:resource_util_custom",
         "//mediapipe/modules/face_geometry/protos:geometry_pipeline_metadata_cc_proto",
         "//mediapipe/modules/face_geometry/protos:mesh_3d_cc_proto",
         "//mediapipe/modules/face_geometry:env_generator_calculator",

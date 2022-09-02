@@ -1,4 +1,5 @@
 #include <algorithm>
+#include "mediapipe/framework/port/status.h"
 
 namespace mediapipe {
     class MatrixData;
@@ -159,7 +160,7 @@ namespace firefly {
         ARKitFaceBlendShapes& out
     );
 
-    bool init(int cameraId);
-    bool run(ARKitFaceBlendShapes* out);
+    absl::Status init(int cameraId);
+    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug = false);
     void shutdown();
 }

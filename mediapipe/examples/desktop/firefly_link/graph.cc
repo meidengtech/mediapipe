@@ -20,18 +20,24 @@ namespace firefly {
     std::unique_ptr<cv::VideoCapture> capture;
 
 
-    bool getPooler(const char* name, std::unique_ptr<mediapipe::OutputStreamPoller>& ptr) {
+    absl::Status getPooler(std::unique_ptr<mediapipe::CalculatorGraph>& graph, const char* name, std::unique_ptr<mediapipe::OutputStreamPoller>& ptr) {
     auto statusor =  std::move(graph->AddOutputStreamPoller(name));
     if (!statusor.ok()) {
         LOG(ERROR) << "Poller init failed.";
         graph.reset();
-        return false;
+        return statusor.status();
     }
     ptr = std::make_unique<mediapipe::OutputStreamPoller>(std::move(std::move(statusor).value()));
-    return true;
+    return absl::OkStatus();
     }
 
-    bool init(int cameraId) {
+    absl::Status init(int cameraId) {
+
+        std::unique_ptr<mediapipe::CalculatorGraph> graph_;
+        std::unique_ptr<mediapipe::OutputStreamPoller> output_video_poller_;
+        std::unique_ptr<mediapipe::OutputStreamPoller> face_blendshapes_poller_;
+        std::unique_ptr<cv::VideoCapture> capture_;
+
         mediapipe::CalculatorGraphConfig config =
         mediapipe::ParseTextProtoOrDie<mediapipe::CalculatorGraphConfig>(R"pb(
     # CPU image. (ImageFrame)
@@ -155,50 +161,42 @@ namespace firefly {
     }
         )pb");
 
-        graph.reset(new mediapipe::CalculatorGraph());
-        auto status = graph->Initialize(config);
-        if (!status.ok()) {
-            LOG(ERROR) << "Graph init failed." << status;
-            graph.reset();
-            return false;
-        }
+        graph_.reset(new mediapipe::CalculatorGraph());
+        MP_RETURN_IF_ERROR(graph_->Initialize(config)) << "Graph init failed.";
 
         LOG(INFO) << "Start running the calculator graph.";
 
-        if (!getPooler("output_video", output_video_poller)) {
-            return false;
-        }
-
-        if (!getPooler("face_blendshapes", face_blendshapes_poller)) {
-            return false;
-        }
+        MP_RETURN_IF_ERROR(getPooler(graph_, "output_video", output_video_poller_));
+        MP_RETURN_IF_ERROR(getPooler(graph_, "face_blendshapes", face_blendshapes_poller_));
         
         std::map<std::string, mediapipe::Packet> extra_side_packets;
         extra_side_packets["refine_face_landmarks"] = mediapipe::MakePacket<bool>(true);
         extra_side_packets["use_prev_landmarks"] = mediapipe::MakePacket<bool>(true);
 
-        if (!graph->StartRun(extra_side_packets).ok()) {
-            LOG(ERROR) << "Graph init failed.";
-            graph.reset();
-            return false;
-        }
+        MP_RETURN_IF_ERROR(graph_->StartRun(extra_side_packets)) << "Graph init failed.";
 
         LOG(INFO) << "Start grabbing and processing frames.";
 
-        capture.reset(new cv::VideoCapture());
-        capture->open(0);
-        capture->set(cv::CAP_PROP_FRAME_WIDTH, 640);
-        capture->set(cv::CAP_PROP_FRAME_HEIGHT, 480);
-        capture->set(cv::CAP_PROP_FPS, 30);
-        return true;
+        capture_.reset(new cv::VideoCapture());
+        capture_->open(0);
+        capture_->set(cv::CAP_PROP_FRAME_WIDTH, 640);
+        capture_->set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+        capture_->set(cv::CAP_PROP_FPS, 30);
+
+        graph.reset(graph_.release());
+        output_video_poller.reset(output_video_poller_.release());
+        face_blendshapes_poller.reset(face_blendshapes_poller_.release());
+        capture.reset(capture_.release());
+
+        return absl::OkStatus();
     }
 
-    bool run(ARKitFaceBlendShapes* out) {
+    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug) {
         cv::Mat camera_frame_raw;
         (*capture) >> camera_frame_raw;
 
         if (camera_frame_raw.empty()) {
-            return true;
+            return absl::OkStatus();
         }
 
         cv::Mat camera_frame;
@@ -215,34 +213,32 @@ namespace firefly {
         // Send image packet into the graph.
         size_t frame_timestamp_us =
             (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
-        auto status = graph->AddPacketToInputStream(
+        MP_RETURN_IF_ERROR(graph->AddPacketToInputStream(
         "input_video", mediapipe::Adopt(input_frame.release())
-                            .At(mediapipe::Timestamp(frame_timestamp_us)));
-        if (!status.ok()) {
-            LOG(ERROR) << "Failed to add packet to input stream." << status;
-            return false;
-        }
+                            .At(mediapipe::Timestamp(frame_timestamp_us))));
 
         // Get the graph result packet, or stop if that fails.
         {
             mediapipe::Packet packet;
             if (!output_video_poller->Next(&packet)) {
                 LOG(ERROR) << "Failed to poll packet.";
-                return false;
+                return absl::UnknownError("poller->Next failed.");
             }
             auto& output_frame = packet.Get<mediapipe::ImageFrame>();
 
             cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
             cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
 
-            cv::imshow("Firefly", output_frame_mat);
+            if (showDebug) {
+                cv::imshow("Firefly", output_frame_mat);
+            }
         }
 
         if (face_blendshapes_poller->QueueSize() > 0)
         {
             mediapipe::Packet packet;
             if (!face_blendshapes_poller->Next(&packet)) {
-                return false;
+                return absl::UnknownError("poller->Next failed.");
             }
             auto& output_frame = packet.Get<firefly::ARKitFaceBlendShapes>();
 
@@ -251,7 +247,7 @@ namespace firefly {
             }
         }
 
-        return true;
+        return absl::OkStatus();
     }
 
     void shutdown() {

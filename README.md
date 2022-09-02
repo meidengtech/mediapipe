@@ -178,5 +178,5 @@ bazel build --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" -c o
 发布
 
 ```sh
-bazel build --compilation_mode=opt --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link:firefly
+bazel build --compilation_mode=opt --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link:firefly_link.dll
 ```

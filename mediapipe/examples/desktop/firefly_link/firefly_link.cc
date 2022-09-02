@@ -21,14 +21,14 @@
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
-  if (!firefly::init(0)) {
+  if (!firefly::init(0).ok()) {
     return -1;
   }
 
   bool running = true;
   
   while (running) {
-      if (!firefly::run(NULL)) {
+      if (!firefly::run(NULL, true).ok()) {
         break;
       }
       // Press any key to exit.
