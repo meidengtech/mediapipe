@@ -187,7 +187,6 @@ namespace firefly {
 
         capture.reset(new cv::VideoCapture());
         capture->open(0);
-        cv::namedWindow("Firefly Face Capture", /*flags=WINDOW_AUTOSIZE*/ 1);
         capture->set(cv::CAP_PROP_FRAME_WIDTH, 640);
         capture->set(cv::CAP_PROP_FRAME_HEIGHT, 480);
         capture->set(cv::CAP_PROP_FPS, 30);
