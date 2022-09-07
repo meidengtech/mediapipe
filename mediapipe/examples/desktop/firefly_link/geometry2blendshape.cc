@@ -352,7 +352,7 @@ namespace firefly {
         float db = cross2d(cd, b - d);
         float di = cross2d(cd, i - d);
         //printf("%f %f %f ", da, db, di);
-        return remap(di, da, db) - 0.5f;
+        return clamp((di - da)/ (db - da), 0, 1) - 0.5f;
     }
 
     void _calculate_eye_iris(
@@ -368,8 +368,9 @@ namespace firefly {
         auto d = v2d(face_landmarks.landmark(points[6]));
         auto i = v2d(face_landmarks.landmark(irisPoint));
 
-        float hd = _iris_offset(a,b,c,d,i) * -5 - 0.2;
-        float vd = _iris_offset(c,d,b,a,i) * 3;
+        float hd = _iris_offset(a,b,c,d,i) * -5 + 0.2;
+        float vd = _iris_offset(d,c,b,a,i) * 3 - 0.3;
+        printf("%f %f ", hd, vd);
         
         if (hd < 0) {
             out.bs[bsList[1]] = std::min(1.0f, -hd);
@@ -388,7 +389,8 @@ namespace firefly {
         const mediapipe::NormalizedLandmarkList& face_landmarks,
         ARKitFaceBlendShapes& out
     ) {
-        //_calculate_eye_iris(face_landmarks, out, eye_right, iris_right, eyeDirBSRight);
+        _calculate_eye_iris(face_landmarks, out, eye_right, iris_right, eyeDirBSRight);
         _calculate_eye_iris(face_landmarks, out, eye_left, iris_left, eyeDirBSLeft);
+        printf("\n");
     }
 }
