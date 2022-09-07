@@ -155,8 +155,21 @@ namespace firefly {
         return v.length();
     }
 
+    inline float cross2d(const Vertex&a, const Vertex& b) {
+        return a.x * b.y - a.y * b.x;
+    }
+
+    template <typename T> int sign(T val) {
+        return (T(0) < val) - (val < T(0));
+    }
+
     void geometry2blendshape(
         const mediapipe::face_geometry::FaceGeometry& geometry,
+        ARKitFaceBlendShapes& out
+    );
+
+    void iris2blendshape(
+        const mediapipe::NormalizedLandmarkList& face_landmarks,
         ARKitFaceBlendShapes& out
     );
 

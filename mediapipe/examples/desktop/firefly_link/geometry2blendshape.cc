@@ -3,6 +3,7 @@
 #include "firefly_link.h"
 #include <algorithm>
 #include <type_traits>
+#include "mediapipe/framework/formats/landmark.pb.h"
 #include "mediapipe/modules/face_geometry/protos/face_geometry.pb.h"
 #include "mediapipe/modules/face_geometry/protos/mesh_3d.pb.h"
 
@@ -38,6 +39,22 @@ static const int inner_brow = 9;
 static const int upper_nose = 6;
 static const int cheek_squint_left[] = {359, 342};
 static const int cheek_squint_right[] = {130, 113};
+static const int iris_right = 468;
+static const int iris_left = 473;
+
+static const firefly::ARKit::FaceBlendShape eyeDirBSLeft[] = {
+    firefly::ARKit::EyeLookInLeft,
+    firefly::ARKit::EyeLookOutLeft,
+    firefly::ARKit::EyeLookUpLeft,
+    firefly::ARKit::EyeLookDownLeft,
+};
+
+static const firefly::ARKit::FaceBlendShape eyeDirBSRight[] = {
+    firefly::ARKit::EyeLookInRight,
+    firefly::ARKit::EyeLookOutRight,
+    firefly::ARKit::EyeLookUpRight,
+    firefly::ARKit::EyeLookDownRight,
+};
 
 static std::map<firefly::ARKit::FaceBlendShape, std::pair<float, float> > remap_config= {
     {firefly::ARKit::EyeBlinkLeft , std::make_pair(0.40, 0.70) },
@@ -313,9 +330,6 @@ namespace firefly {
     ) {
         const float* data = geometry.mesh().vertex_buffer().data();
 
-        // reset to zero.
-        std::fill(out.bs, out.bs + 61, 0);
-
         _calculate_mouth_landmarks(data, out);
         _calculate_eye_landmarks(data, out);
 
@@ -324,5 +338,57 @@ namespace firefly {
         out.bs[ARKit::HeadYaw] = euler.Yaw;
         out.bs[ARKit::HeadPitch] = euler.Pitch;
         out.bs[ARKit::HeadRoll] = euler.Roll;
+    }
+
+    inline Vertex v2d(const mediapipe::NormalizedLandmark& landmark) {
+        return Vertex(landmark.x(), landmark.y(), 0);
+    }
+
+    float _iris_offset(const Vertex& a, const Vertex& b, const Vertex& c, const Vertex& d, const Vertex& i) {
+        auto cd = (d - c);
+        cd /= cd.length();
+
+        float da = cross2d(cd, a - d);
+        float db = cross2d(cd, b - d);
+        float di = cross2d(cd, i - d);
+        //printf("%f %f %f ", da, db, di);
+        return remap(di, da, db) - 0.5f;
+    }
+
+    void _calculate_eye_iris(
+        const mediapipe::NormalizedLandmarkList& face_landmarks,
+        ARKitFaceBlendShapes& out,
+        const int* points,
+        int irisPoint,
+        const firefly::ARKit::FaceBlendShape* bsList
+    ) {
+        auto a = v2d(face_landmarks.landmark(points[0]));
+        auto b = v2d(face_landmarks.landmark(points[1]));
+        auto c = v2d(face_landmarks.landmark(points[4]));
+        auto d = v2d(face_landmarks.landmark(points[6]));
+        auto i = v2d(face_landmarks.landmark(irisPoint));
+
+        float hd = _iris_offset(a,b,c,d,i) * -5 - 0.2;
+        float vd = _iris_offset(c,d,b,a,i) * 3;
+        
+        if (hd < 0) {
+            out.bs[bsList[1]] = std::min(1.0f, -hd);
+        } else {
+            out.bs[bsList[0]] = std::min(1.0f, hd);
+        }
+
+        if (vd < 0) {
+            out.bs[bsList[2]] = std::min(1.0f, -hd);
+        } else {
+            out.bs[bsList[3]] = std::min(1.0f, hd);
+        }
+    }
+
+    void iris2blendshape(
+        const mediapipe::NormalizedLandmarkList& face_landmarks,
+        ARKitFaceBlendShapes& out
+    ) {
+        //_calculate_eye_iris(face_landmarks, out, eye_right, iris_right, eyeDirBSRight);
+        _calculate_eye_iris(face_landmarks, out, eye_left, iris_left, eyeDirBSLeft);
     }
 }

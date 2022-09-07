@@ -15,13 +15,21 @@
 // A simple example to print out "Hello World!" from a MediaPipe graph.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "firefly_link.h"
 #include "mediapipe/framework/port/status.h"
 #include "mediapipe/framework/port/opencv_highgui_inc.h"
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
-  if (!firefly::init(0).ok()) {
+  int cameraId = 0;
+
+  if (argc >= 2) {
+    cameraId = atoi(argv[1]);
+  }
+  printf("Camera ID: %s %d\n",argv[1], cameraId);
+  
+  if (!firefly::init(cameraId).ok()) {
     return -1;
   }
 
@@ -32,7 +40,6 @@ int main(int argc, char** argv) {
       if (!firefly::run(&out, true).ok()) {
         break;
       }
-      printf("%f %f\n", out.bs[firefly::ARKit::EyeBlinkLeft], out.bs[firefly::ARKit::EyeBlinkRight]);
       // Press any key to exit.
       const int pressed_key = cv::waitKey(5);
       if (pressed_key >= 0 && pressed_key != 255) running = false;

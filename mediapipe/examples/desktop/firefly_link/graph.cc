@@ -40,24 +40,24 @@ namespace firefly {
 
         mediapipe::CalculatorGraphConfig config =
         mediapipe::ParseTextProtoOrDie<mediapipe::CalculatorGraphConfig>(R"pb(
-    # CPU image. (ImageFrame)
-    input_stream: "input_video"
+# CPU image. (ImageFrame)
+input_stream: "input_video"
 
-    # Whether to run face mesh model with attention on lips and eyes. (bool)
-    # Attention provides more accuracy on lips and eye regions as well as iris
-    # landmarks.
-    input_side_packet: "refine_face_landmarks"
+# Whether to run face mesh model with attention on lips and eyes. (bool)
+# Attention provides more accuracy on lips and eye regions as well as iris
+# landmarks.
+input_side_packet: "refine_face_landmarks"
 
-    # Whether landmarks on the previous image should be used to help localize
-    # landmarks on the current image. (bool)
-    input_side_packet: "use_prev_landmarks"
+# Whether landmarks on the previous image should be used to help localize
+# landmarks on the current image. (bool)
+input_side_packet: "use_prev_landmarks"
 
-    # CPU image with rendered results. (ImageFrame)
-    output_stream: "output_video"
+# CPU image with rendered results. (ImageFrame)
+output_stream: "output_video"
 
-    output_stream: "face_blendshapes"
+output_stream: "face_blendshapes"
 
-    node {
+node {
     calculator: "FlowLimiterCalculator"
     input_stream: "input_video"
     input_stream: "FINISHED:output_video"
@@ -75,9 +75,9 @@ namespace firefly {
         in_flight_timeout: 0
         }
     }
-    }
+}
 
-    node {
+node {
     calculator: "HolisticLandmarkCpu"
     input_stream: "IMAGE:throttled_input_video"
     input_side_packet: "REFINE_FACE_LANDMARKS:refine_face_landmarks"
@@ -89,17 +89,17 @@ namespace firefly {
     output_stream: "FACE_LANDMARKS:face_landmarks"
     output_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
     output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
-    }
+}
 
-    # Gets image size.
-    node {
+# Gets image size.
+node {
     calculator: "ImagePropertiesCalculator"
     input_stream: "IMAGE:throttled_input_video"
     output_stream: "SIZE:image_size"
-    }
+}
 
-    # Converts pose, hands and face landmarks to a render data vector.
-    node {
+# Converts pose, hands and face landmarks to a render data vector.
+node {
     calculator: "HolisticTrackingToRenderData"
     input_stream: "IMAGE_SIZE:image_size"
     input_stream: "POSE_LANDMARKS:pose_landmarks"
@@ -108,17 +108,17 @@ namespace firefly {
     input_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
     input_stream: "FACE_LANDMARKS:face_landmarks"
     output_stream: "RENDER_DATA_VECTOR:render_data_vector"
-    }
+}
 
-    # Draws annotations and overlays them on top of the input images.
-    node {
+# Draws annotations and overlays them on top of the input images.
+node {
     calculator: "AnnotationOverlayCalculator"
     input_stream: "IMAGE:throttled_input_video"
     input_stream: "VECTOR:render_data_vector"
     output_stream: "IMAGE:output_video"
-    }
+}
 
-    node {
+node {
     calculator: "FaceGeometryEnvGeneratorCalculator"
     output_side_packet: "ENVIRONMENT:environment"
     node_options: {
@@ -133,15 +133,15 @@ namespace firefly {
         }
         }
     }
-    }
+}
 
-    node {
+node {
     calculator: "FaceLandmarkToMultiCalculator"
     input_stream: "FACE_LANDMARKS:face_landmarks"
     output_stream: "MULTI_FACE_LANDMARKS:multi_face_landmarks"
-    }
+}
 
-    node {
+node {
     calculator: "FaceGeometryPipelineCalculator"
     input_side_packet: "ENVIRONMENT:environment"
     input_stream: "IMAGE_SIZE:image_size"
@@ -149,17 +149,18 @@ namespace firefly {
     output_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
     options: {
         [mediapipe.FaceGeometryPipelineCalculatorOptions.ext] {
-        metadata_path: "mediapipe/modules/face_geometry/data/geometry_pipeline_metadata_landmarks.binarypb"
+            metadata_path: "mediapipe/modules/face_geometry/data/geometry_pipeline_metadata_landmarks.binarypb"
         }
     }
-    }
+}
 
-    node {
+node {
     calculator: "ArkitBlendshapesCalculator"
+    input_stream: "FACE_LANDMARKS:face_landmarks"
     input_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
     output_stream: "FACE_BLEND_SHAPES:face_blendshapes"
-    }
-        )pb");
+}
+    )pb");
 
         graph_.reset(new mediapipe::CalculatorGraph());
         MP_RETURN_IF_ERROR(graph_->Initialize(config)) << "Graph init failed.";
@@ -178,9 +179,9 @@ namespace firefly {
         LOG(INFO) << "Start grabbing and processing frames.";
 
         capture_.reset(new cv::VideoCapture());
-        capture_->open(0);
-        capture_->set(cv::CAP_PROP_FRAME_WIDTH, 800);
-        capture_->set(cv::CAP_PROP_FRAME_HEIGHT, 600);
+        capture_->open(cameraId);
+        // capture_->set(cv::CAP_PROP_FRAME_WIDTH, 800);
+        // capture_->set(cv::CAP_PROP_FRAME_HEIGHT, 450);
         capture_->set(cv::CAP_PROP_FPS, 30);
 
         graph.reset(graph_.release());
@@ -196,6 +197,7 @@ namespace firefly {
         (*capture) >> camera_frame_raw;
 
         if (camera_frame_raw.empty()) {
+            printf("Empty frame\n");
             return absl::OkStatus();
         }
 

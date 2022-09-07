@@ -1,5 +1,6 @@
 #include <map>
 #include <memory>
+#include <algorithm>
 
 #include "mediapipe/framework/port/status.h"
 #include "mediapipe/framework/port/status_macros.h"
@@ -12,12 +13,16 @@
 #include "firefly_link.h"
 
 namespace mediapipe {
+    static constexpr char kFaceLandmarksTag[] = "FACE_LANDMARKS";
     static constexpr char kMultiFaceGeometryTag[] = "MULTI_FACE_GEOMETRY";
     static constexpr char kFaceBlendshapes[] = "FACE_BLEND_SHAPES";
 
     class ArkitBlendshapesCalculator: public CalculatorBase {
     public:
         static absl::Status GetContract(CalculatorContract* cc) {
+            cc->Inputs()
+                .Tag(kFaceLandmarksTag)
+                .Set<NormalizedLandmarkList>();
             cc->Inputs()
                 .Tag(kMultiFaceGeometryTag)
                 .Set<std::vector<face_geometry::FaceGeometry>>();
@@ -34,9 +39,17 @@ namespace mediapipe {
                 .Tag(kMultiFaceGeometryTag)
                 .Get<std::vector<face_geometry::FaceGeometry>>();
 
+            const auto& face_landmarks =
+            cc->Inputs()
+                .Tag(kFaceLandmarksTag)
+                .Get<NormalizedLandmarkList>();
+
             std::unique_ptr<firefly::ARKitFaceBlendShapes> blendShapes = std::make_unique<firefly::ARKitFaceBlendShapes>();
 
+            // reset to zero.
+            std::fill(blendShapes->bs, blendShapes->bs + 61, 0);
             firefly::geometry2blendshape(mutiple_face_geometry[0], *blendShapes);
+            firefly::iris2blendshape(face_landmarks, *blendShapes);
 
             cc->Outputs()
                 .Tag(kFaceBlendshapes)
