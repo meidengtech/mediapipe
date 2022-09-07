@@ -370,7 +370,6 @@ namespace firefly {
 
         float hd = _iris_offset(a,b,c,d,i) * -5 + 0.2;
         float vd = _iris_offset(d,c,b,a,i) * 3 - 0.3;
-        printf("%f %f ", hd, vd);
         
         if (hd < 0) {
             out.bs[bsList[1]] = std::min(1.0f, -hd);
@@ -391,6 +390,5 @@ namespace firefly {
     ) {
         _calculate_eye_iris(face_landmarks, out, eye_right, iris_right, eyeDirBSRight);
         _calculate_eye_iris(face_landmarks, out, eye_left, iris_left, eyeDirBSLeft);
-        printf("\n");
     }
 }
