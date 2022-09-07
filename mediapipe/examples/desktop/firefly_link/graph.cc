@@ -179,7 +179,7 @@ node {
         LOG(INFO) << "Start grabbing and processing frames.";
 
         capture_.reset(new cv::VideoCapture());
-        capture_->open(cameraId);
+        capture_->open(cameraId, cv::CAP_DSHOW);
         // capture_->set(cv::CAP_PROP_FRAME_WIDTH, 800);
         // capture_->set(cv::CAP_PROP_FRAME_HEIGHT, 450);
         capture_->set(cv::CAP_PROP_FPS, 30);
