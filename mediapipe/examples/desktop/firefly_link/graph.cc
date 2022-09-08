@@ -91,6 +91,22 @@ node {
     output_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
 }
 
+node {
+  calculator: "LandmarksSmoothingCalculator"
+  input_stream: "NORM_LANDMARKS:face_landmarks"
+  input_stream: "IMAGE_SIZE:image_size"
+  output_stream: "NORM_FILTERED_LANDMARKS:filtered_face_landmarks"
+  node_options: {
+    [type.googleapis.com/mediapipe.LandmarksSmoothingCalculatorOptions] {
+      velocity_filter: {
+        window_size: 5
+        velocity_scale: 20.0
+      }
+    }
+  }
+}
+
+
 # Gets image size.
 node {
     calculator: "ImagePropertiesCalculator"
@@ -106,7 +122,7 @@ node {
     input_stream: "POSE_ROI:pose_roi"
     input_stream: "LEFT_HAND_LANDMARKS:left_hand_landmarks"
     input_stream: "RIGHT_HAND_LANDMARKS:right_hand_landmarks"
-    input_stream: "FACE_LANDMARKS:face_landmarks"
+    input_stream: "FACE_LANDMARKS:filtered_face_landmarks"
     output_stream: "RENDER_DATA_VECTOR:render_data_vector"
 }
 
@@ -137,7 +153,7 @@ node {
 
 node {
     calculator: "FaceLandmarkToMultiCalculator"
-    input_stream: "FACE_LANDMARKS:face_landmarks"
+    input_stream: "FACE_LANDMARKS:filtered_face_landmarks"
     output_stream: "MULTI_FACE_LANDMARKS:multi_face_landmarks"
 }
 
@@ -156,7 +172,7 @@ node {
 
 node {
     calculator: "ArkitBlendshapesCalculator"
-    input_stream: "FACE_LANDMARKS:face_landmarks"
+    input_stream: "FACE_LANDMARKS:filtered_face_landmarks"
     input_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
     output_stream: "FACE_BLEND_SHAPES:face_blendshapes"
 }

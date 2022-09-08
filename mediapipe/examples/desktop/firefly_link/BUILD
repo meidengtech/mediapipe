@@ -39,6 +39,7 @@ cc_binary(
         "//mediapipe/framework/port:opencv_highgui",
         "//mediapipe/framework/port:parse_text_proto",
         "//mediapipe/framework/port:status",
+        "//mediapipe/calculators/util:landmarks_smoothing_calculator",
         "//mediapipe/modules/face_geometry/protos:geometry_pipeline_metadata_cc_proto",
         "//mediapipe/modules/face_geometry/protos:mesh_3d_cc_proto",
         "//mediapipe/modules/face_geometry:env_generator_calculator",
