@@ -31,9 +31,9 @@ static const int right_upper_press[] = {270, 310};
 static const int right_lower_press[] = {318, 321};
 static const int squint_left[] = {253, 450};
 static const int squint_right[] = {23, 230};
-static const int right_brow = 27;
+static const int right_brow = 223;
 static const int right_brow_lower[] = {53, 52, 65};
-static const int left_brow = 257;
+static const int left_brow = 443;
 static const int left_brow_lower[] = {283, 282, 295};
 static const int inner_brow = 9;
 static const int upper_nose = 6;
@@ -87,11 +87,11 @@ static std::map<firefly::ARKit::FaceBlendShape, std::pair<float, float> > remap_
     {firefly::ARKit::MouthPressRight , std::make_pair(0.4, 0.5) },
     {firefly::ARKit::MouthLowerDownLeft , std::make_pair(1.7, 2.1) },
     {firefly::ARKit::MouthLowerDownRight , std::make_pair(1.7, 2.1) },
-    {firefly::ARKit::BrowDownLeft , std::make_pair(0.9, 1.1) },
-    {firefly::ARKit::BrowDownRight , std::make_pair(0.9, 1.1) },
+    {firefly::ARKit::BrowDownLeft , std::make_pair(0.55, 0.6) },
+    {firefly::ARKit::BrowDownRight , std::make_pair(0.55, 0.6) },
     {firefly::ARKit::BrowInnerUp , std::make_pair(2.2, 2.6) },
-    {firefly::ARKit::BrowOuterUpLeft , std::make_pair(1.25, 1.5) },
-    {firefly::ARKit::BrowOuterUpRight , std::make_pair(1.25, 1.5) },
+    {firefly::ARKit::BrowOuterUpLeft , std::make_pair(0.65, 0.7) },
+    {firefly::ARKit::BrowOuterUpRight , std::make_pair(0.65, 0.7) },
     {firefly::ARKit::CheekSquintLeft , std::make_pair(0.55, 0.63) },
     {firefly::ARKit::CheekSquintRight , std::make_pair(0.55, 0.63) },
 };
@@ -293,6 +293,7 @@ namespace firefly {
             get(::left_brow_lower[2])
         ) / 3;
         auto left_brow_dist = distance(get(::left_brow), left_brow_lower);
+        // printf("%f %f\n", right_brow_dist, left_brow_dist);
 
         out.bs[ARKit::BrowDownLeft] = 1 - remap(ARKit::BrowDownLeft, left_brow_dist);
         out.bs[ARKit::BrowOuterUpLeft] = remap(ARKit::BrowOuterUpLeft, left_brow_dist);
