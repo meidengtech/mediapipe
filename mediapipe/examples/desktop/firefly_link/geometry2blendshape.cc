@@ -16,7 +16,7 @@ static const int lower_lip = 14;
 static const int upper_outer_lip = 12;
 static const int mouth_corner_left = 291;
 static const int mouth_corner_right = 61;
-static const int lowest_chin = 175;
+static const int lowest_chin = 199;
 static const int upper_head = 10;
 static const int mouth_frown_left = 422;
 static const int mouth_frown_right = 202;
@@ -65,7 +65,7 @@ static std::map<firefly::ARKit::FaceBlendShape, std::pair<float, float> > remap_
     {firefly::ARKit::EyeWideRight , std::make_pair(0.9, 1.2) },
     {firefly::ARKit::JawLeft , std::make_pair(-0.4, 0.0) },
     {firefly::ARKit::JawRight , std::make_pair(0.0, 0.4) },
-    {firefly::ARKit::JawOpen , std::make_pair(0.92, 1.02) },
+    {firefly::ARKit::JawOpen , std::make_pair(0.85, 0.95) },
     {firefly::ARKit::MouthClose , std::make_pair(0, 0.7) },
     {firefly::ARKit::MouthFunnel , std::make_pair(3.5, 4) },
     {firefly::ARKit::MouthPucker , std::make_pair(3.26, 4.1) },
@@ -140,7 +140,7 @@ namespace firefly {
         auto jaw_open_ratio = abs(lowest_chin.y - nose_tip.y) / abs(upper_head.y - nose_tip.y);
         //printf("%f\n", jaw_open_ratio);
 
-        out.bs[ARKit::JawOpen] = remap(ARKit::JawOpen, jaw_open_ratio);
+        out.bs[ARKit::JawOpen] = std::max(remap(ARKit::JawOpen, jaw_open_ratio), clamp(mouth_open_dist / mouth_top_nose_dist / 0.7f, 0, 1));
         out.bs[ARKit::MouthClose] = clamp(out.bs[ARKit::JawOpen] - remap(ARKit::MouthClose, mouth_open_dist / mouth_top_nose_dist), 0, 1);
 
         auto mouth_smile_left = out.bs[ARKit::MouthSmileLeft] = remap(ARKit::MouthSmileLeft, mouth_corner_left.y - mouth_center.y);
