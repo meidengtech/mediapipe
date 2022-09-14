@@ -48,8 +48,8 @@ extern "C" __declspec(dllexport) bool firefly_init(int cameraId) {
     return true;
 }
 
-extern "C" __declspec(dllexport) bool firefly_run(firefly::ARKitFaceBlendShapes* out) {
-    auto s = firefly::run(out);
+extern "C" __declspec(dllexport) bool firefly_run(firefly::ARKitFaceBlendShapes* out, std::function<void (const void* data, int width, int height)> preview) {
+    auto s = firefly::run(out, false, preview);
     if (!s.ok()) {
         OutputDebugStringA(s.ToString().c_str());
         return false;

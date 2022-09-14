@@ -208,7 +208,7 @@ node {
         return absl::OkStatus();
     }
 
-    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug) {
+    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug, std::function<void (const void* data, int width, int height)> preview) {
         cv::Mat camera_frame_raw;
         (*capture) >> camera_frame_raw;
 
@@ -245,9 +245,13 @@ node {
             auto& output_frame = packet.Get<mediapipe::ImageFrame>();
 
             cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
-            cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
 
-            if (showDebug) {
+            if (preview) {
+                cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGRA);
+                cv::flip(output_frame_mat, output_frame_mat, /*flipcode=HORIZONTAL*/ 1);
+                preview(output_frame_mat.ptr(), output_frame_mat.cols, output_frame_mat.rows);
+            } else if (showDebug) {
+                cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
                 cv::imshow("Firefly", output_frame_mat);
             }
         }

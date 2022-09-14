@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include "mediapipe/framework/port/status.h"
 
 namespace mediapipe {
@@ -174,6 +175,6 @@ namespace firefly {
     );
 
     absl::Status init(int cameraId);
-    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug = false);
+    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug, std::function<void (const void* data, int width, int height)> preview);
     void shutdown();
 }

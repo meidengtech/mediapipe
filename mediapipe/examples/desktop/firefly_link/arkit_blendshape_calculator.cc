@@ -47,7 +47,7 @@ namespace mediapipe {
             std::unique_ptr<firefly::ARKitFaceBlendShapes> blendShapes = std::make_unique<firefly::ARKitFaceBlendShapes>();
 
             // reset to zero.
-            std::fill(blendShapes->bs, blendShapes->bs + 61, 0);
+            std::fill(blendShapes->bs, blendShapes->bs + 61, 0.0f);
             firefly::geometry2blendshape(mutiple_face_geometry[0], *blendShapes);
             firefly::iris2blendshape(face_landmarks, *blendShapes);
 

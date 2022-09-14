@@ -37,10 +37,9 @@ int main(int argc, char** argv) {
   firefly::ARKitFaceBlendShapes out;
   
   while (running) {
-      if (!firefly::run(&out, true).ok()) {
+      if (!firefly::run(&out, true, nullptr).ok()) {
         break;
       }
-      printf("%f\n", out.bs[firefly::ARKit::JawOpen]);
       // Press any key to exit.
       const int pressed_key = cv::waitKey(5);
       if (pressed_key >= 0 && pressed_key != 255) running = false;
