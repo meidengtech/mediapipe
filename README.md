@@ -175,8 +175,18 @@ bazel build --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" -c o
 
 然后手动找出来该文件并复制到目标地点。
 
+调试
+
+```sh
+bazel build --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link:firefly_link.dll
+```
+
+可以找到对应的dll和pdb一起复制到目标地点。
+
 发布
 
 ```sh
 bazel build --compilation_mode=opt --define MEDIAPIPE_DISABLE_GPU=1 --action_env PYTHON_BIN_PATH="D://Software//python//python.exe" mediapipe/examples/desktop/firefly_link:firefly_link.dll
 ```
+
+然后找到dll（没有pdb）复制到目标地点
