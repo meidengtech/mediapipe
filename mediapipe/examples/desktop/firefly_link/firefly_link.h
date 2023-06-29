@@ -87,10 +87,72 @@ namespace firefly {
             RightEyePitch = 59,
             RightEyeRoll = 60,
         };
+
+        enum PoseLandmark {
+            NOSE = 0,
+            LEFT_SHOULDER = 11,
+            RIGHT_SHOULDER = 12,
+            LEFT_ELBOW =13,
+            RIGHT_ELBOW = 14,
+            LEFT_WRIST = 15,
+            RIGHT_WRIST = 16,
+            LEFT_PINKY = 17,
+            RIGHT_PINKY = 18,
+            LEFT_INDEX = 19,
+            RIGHT_INDEX = 20,
+            LEFT_THUMB = 21,
+            RIGHT_THUMB = 22,
+            LEFT_HIP = 23,
+            RIGHT_HIP = 24,
+            LEFT_KNEE = 25,
+            RIGHT_KNEE = 26,
+            LEFT_ANKLE = 27,
+            RIGHT_ANKLE = 28,
+            LEFT_FOOT_INDEX = 31,
+            RIGHT_FOOT_INDEX = 32,
+        };
+
+        enum HandLandMark {
+            WRIST = 0,
+            THUMB_1 = 1,
+            THUMB_2 = 2,
+            THUMB_3 = 3,
+            THUMB_4 = 4,
+            INDEX_1 = 5,
+            INDEX_2 = 6,
+            INDEX_3 = 7,
+            INDEX_4 = 8,
+            MIDDLE_1 = 9,
+            MIDDLE_2 = 10,
+            MIDDLE_3 = 11,
+            MIDDLE_4 = 12,
+            RING_1 = 13,
+            RING_2 = 14,
+            RING_3 = 15,
+            RING_4 = 16,
+            LITTLE_1 = 17,
+            LITTLE_2 = 18,
+            LITTLE_3 = 19,
+            LITTLE_4 = 20,
+        };
     }
 
     struct ARKitFaceBlendShapes {
-        float bs[61];
+        float data[61];
+    };
+
+    struct PosePositions {
+        float data[99];
+    };
+
+    struct HandPositions {
+        float data[63];
+    };
+
+    struct AllOutput {
+        ARKitFaceBlendShapes bs;
+        PosePositions        poses;
+        HandPositions        leftHand, rightHand;
     };
 
     Euler mat2euler(const mediapipe::MatrixData& data);
@@ -175,6 +237,6 @@ namespace firefly {
     );
 
     absl::Status init(int cameraId);
-    absl::Status run(ARKitFaceBlendShapes* out, bool showDebug, std::function<void (const void* data, int width, int height)> preview);
+    absl::Status run(AllOutput* out, bool showDebug, std::function<void (const void* data, int width, int height)> preview);
     void shutdown();
 }
